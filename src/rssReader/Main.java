@@ -54,8 +54,16 @@ public class Main {
                 e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
             }
 
-            URL u = new URL(config.getProperty("url"));
-            Feed feed = new Feed(u,600,"MorningFun", jabber, "rss", java.util.logging.Level.FINE);
+            URL feed_url = new URL(config.getProperty("url"));
+            int update_interval = Integer.parseInt(config.getProperty("interval"));
+            Feed feed = new Feed(
+                    feed_url,
+                    update_interval,
+                    config.getProperty("feedname"),
+                    jabber,
+                    config.getProperty("nodename"),
+                    java.util.logging.Level.FINE
+            );
             feed.activate();
         } catch (MalformedURLException e) {
             e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.

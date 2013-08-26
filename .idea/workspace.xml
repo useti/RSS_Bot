@@ -2,8 +2,8 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="42d16b72-60f6-47c7-806c-faf660f39966" name="Default" comment="">
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/config.properties" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/rssReader/Main.java" afterPath="$PROJECT_DIR$/src/rssReader/Main.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/config.properties" afterPath="$PROJECT_DIR$/config.properties" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
     </list>
     <ignored path="rssBot.iws" />
@@ -14,12 +14,14 @@
     <file path="/NodesList.java" changelist="42d16b72-60f6-47c7-806c-faf660f39966" time="1377288211919" ignored="false" />
     <file path="/LoginForm.java" changelist="42d16b72-60f6-47c7-806c-faf660f39966" time="1377280541492" ignored="false" />
     <file path="$PROJECT_DIR$/../PubSubViewer/src/jab/LoginForm.java" changelist="42d16b72-60f6-47c7-806c-faf660f39966" time="1377281064336" ignored="false" />
-    <file path="$PROJECT_DIR$/../PubSubViewer/config.properties" changelist="42d16b72-60f6-47c7-806c-faf660f39966" time="1377539754351" ignored="false" />
+    <file path="$PROJECT_DIR$/../PubSubViewer/config.properties" changelist="42d16b72-60f6-47c7-806c-faf660f39966" time="1377540895118" ignored="false" />
     <file path="/NewsItem.java" changelist="42d16b72-60f6-47c7-806c-faf660f39966" time="1377294211162" ignored="false" />
     <file path="$PROJECT_DIR$/../PubSubViewer/src/jab/NodesList.form" changelist="42d16b72-60f6-47c7-806c-faf660f39966" time="1377292753756" ignored="false" />
     <file path="$PROJECT_DIR$/../PubSubViewer/.idea/workspace.xml" changelist="42d16b72-60f6-47c7-806c-faf660f39966" time="1377294872794" ignored="false" />
     <file path="$PROJECT_DIR$/../PubSubViewer/src/jab/IRss.java" changelist="42d16b72-60f6-47c7-806c-faf660f39966" time="1377288000976" ignored="false" />
     <file path="$PROJECT_DIR$/../PubSubViewer/src/jab/NewsItem.java" changelist="42d16b72-60f6-47c7-806c-faf660f39966" time="1377294421452" ignored="false" />
+    <file path="/config.properties" changelist="42d16b72-60f6-47c7-806c-faf660f39966" time="1377541510037" ignored="false" />
+    <file path="/Main.java" changelist="42d16b72-60f6-47c7-806c-faf660f39966" time="1377541247840" ignored="false" />
     <option name="TRACKING_ENABLED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -71,6 +73,23 @@
       </breakpoint>
     </breakpoint_any>
     <ui_properties default_suspend_policy="SuspendAll" default_condition_enabled="true" />
+    <line_breakpoints>
+      <breakpoint url="file://$PROJECT_DIR$/src/rssReader/Main.java" line="57" class="rssReader.Main" package="rssReader">
+        <option name="ENABLED" value="true" />
+        <option name="LOG_ENABLED" value="false" />
+        <option name="LOG_EXPRESSION_ENABLED" value="false" />
+        <option name="REMOVE_AFTER_HIT" value="false" />
+        <option name="SUSPEND_POLICY" value="SuspendAll" />
+        <option name="SUSPEND" value="true" />
+        <option name="COUNT_FILTER_ENABLED" value="false" />
+        <option name="COUNT_FILTER" value="0" />
+        <option name="CONDITION_ENABLED" value="true" />
+        <option name="CLASS_FILTERS_ENABLED" value="false" />
+        <option name="INSTANCE_FILTERS_ENABLED" value="false" />
+        <option name="CONDITION" value="" />
+        <option name="LOG_MESSAGE" value="" />
+      </breakpoint>
+    </line_breakpoints>
     <breakpoint_rules />
     <ui_properties />
   </component>
@@ -80,10 +99,10 @@
   </component>
   <component name="FileEditorManager">
     <leaf>
-      <file leaf-file-name="Main.java" pinned="false" current="true" current-in-tab="true">
+      <file leaf-file-name="Main.java" pinned="false" current="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/src/rssReader/Main.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state line="39" column="13" selection-start="953" selection-end="953" vertical-scroll-proportion="0.4192771">
+            <state line="63" column="48" selection-start="2009" selection-end="2009" vertical-scroll-proportion="0.0">
               <folding>
                 <element signature="imports" expanded="true" />
               </folding>
@@ -91,10 +110,10 @@
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="config.properties" pinned="false" current="false" current-in-tab="false">
+      <file leaf-file-name="config.properties" pinned="false" current="true" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/config.properties">
           <provider selected="true" editor-type-id="text-editor">
-            <state line="5" column="61" selection-start="175" selection-end="175" vertical-scroll-proportion="0.0">
+            <state line="3" column="18" selection-start="85" selection-end="85" vertical-scroll-proportion="0.10843374">
               <folding />
             </state>
           </provider>
@@ -150,6 +169,7 @@
       <list>
         <option value="$PROJECT_DIR$/src/rssReader/NewsItem.java" />
         <option value="$PROJECT_DIR$/src/rssReader/Main.java" />
+        <option value="$PROJECT_DIR$/config.properties" />
       </list>
     </option>
   </component>
@@ -343,7 +363,13 @@
       <option name="PASS_PARENT_ENVS" value="true" />
       <module name="rssBot" />
       <envs />
+      <RunnerSettings RunnerId="Debug">
+        <option name="DEBUG_PORT" value="" />
+        <option name="TRANSPORT" value="0" />
+        <option name="LOCAL" value="true" />
+      </RunnerSettings>
       <RunnerSettings RunnerId="Run" />
+      <ConfigurationWrapper RunnerId="Debug" />
       <ConfigurationWrapper RunnerId="Run" />
       <method />
     </configuration>
@@ -389,7 +415,7 @@
       <window_info id="JetGradle" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
       <window_info id="Palette" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
       <window_info id="Ant Build" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.25" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
-      <window_info id="Debug" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.4" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
+      <window_info id="Debug" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.39878234" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
       <window_info id="Event Log" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="7" side_tool="true" content_ui="tabs" />
       <window_info id="Favorites" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="2" side_tool="true" content_ui="tabs" />
       <window_info id="Version Control" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
@@ -529,19 +555,19 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/config.properties">
-      <provider selected="true" editor-type-id="text-editor">
-        <state line="5" column="61" selection-start="175" selection-end="175" vertical-scroll-proportion="0.0">
-          <folding />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/src/rssReader/Main.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="39" column="13" selection-start="953" selection-end="953" vertical-scroll-proportion="0.4192771">
+        <state line="63" column="48" selection-start="2009" selection-end="2009" vertical-scroll-proportion="0.0">
           <folding>
             <element signature="imports" expanded="true" />
           </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/config.properties">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="3" column="18" selection-start="85" selection-end="85" vertical-scroll-proportion="0.10843374">
+          <folding />
         </state>
       </provider>
     </entry>
