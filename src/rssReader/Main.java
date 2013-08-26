@@ -26,7 +26,7 @@ public class Main {
         try {
 
             JabberClient jabber = JabberClient.newBuilder("xmpp.useti.ru")
-                .setPassword("XXXXXXXXXXXXX")
+                .setPassword("XXXXXXXX")
                 .setPort(5222)
                 .setUser("admin@useti.ru")
                 //.setService(params.get("jservice").trim())

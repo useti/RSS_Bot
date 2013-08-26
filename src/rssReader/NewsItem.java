@@ -123,7 +123,7 @@ public class NewsItem implements IRss {
 //        t = cleaner.clean(author);
 //        String clean_author = t.toString();
 //
-        TagNode t = cleaner.clean(link.toString());
+        TagNode t = cleaner.clean(String.format("<a href=\"%s\">%s</a>",link.toString(),link.toString()));
         String clean_link = cleaner.getInnerHtml(t);
 //
 //        t = cleaner.clean(pDate.toString());
