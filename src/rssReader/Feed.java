@@ -4,14 +4,16 @@ import org.jivesoftware.smack.XMPPException;
 import org.jivesoftware.smackx.pubsub.*;
 import org.w3c.dom.*;
 import org.w3c.dom.Node;
+import org.w3c.dom.ls.LSOutput;
 import org.xml.sax.SAXException;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
-import java.io.IOException;
+import java.io.*;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.Properties;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -23,15 +25,16 @@ import java.util.logging.Logger;
  * To change this template use File | Settings | File Templates.
  */
 public class Feed implements Runnable{
-    public Feed(URL link, int checkInterval, String feedName, JabberClient jabber, String newsHub, Level loglevel) throws ParserConfigurationException {
+    public Feed(URL link, int checkInterval, String feedName, JabberClient jabber, String newsHub, Level logLevel, Properties config) throws ParserConfigurationException {
         this.link = link;
         this.checkInterval = checkInterval;
         this.feedName = feedName;
         this.jabber = jabber;
         this.newsHub = newsHub;
-        this.loglevel = loglevel;
-        this.isFirstRun = true;
-        LOGGER.setLevel(this.loglevel);
+        this.logLevel = logLevel;
+        this.config = config;
+        this.isFirstRun = config.getProperty("firstrun").equals("true");
+        LOGGER.setLevel(this.logLevel);
 
         builder = DocumentBuilderFactory.newInstance().newDocumentBuilder();
     }
@@ -42,11 +45,72 @@ public class Feed implements Runnable{
     private final JabberClient jabber;
     private final String newsHub;
     private final DocumentBuilder builder;
-    private final Level loglevel;
+    private final Level logLevel;
+    private final Properties config;
 
     private final static Logger LOGGER = Logger.getLogger(Feed.class.getName());
 
+    public boolean isFirstRun() throws ClassNotFoundException, SAXException, InstantiationException, IllegalAccessException, IOException {
+        return isFirstRun;
+    }
+
+    public void setFirstRun(boolean firstRun) {
+        isFirstRun = firstRun;
+
+
+        config.setProperty("firstrun", firstRun ? "true" : "false" );
+
+        try {
+            config.store(new FileOutputStream("config.properties"), null);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
     private boolean isFirstRun;
+
+    public Element getLastNode() throws IOException, SAXException, InstantiationException, IllegalAccessException, ClassNotFoundException {
+        if (lastNode == null)
+        {
+            File fXmlFile = new File(config.getProperty("lastnodepath","lastnode.xml"));
+            Document doc = builder.parse(fXmlFile);
+
+            lastNode =  doc.getDocumentElement();
+
+            writeNode(lastNode, "testOutput.xml");
+
+            return lastNode;
+        }
+        return lastNode;
+    }
+
+    public void setLastNode(Element node) throws InstantiationException, IllegalAccessException, ClassNotFoundException, IOException {
+        writeNode(node, config.getProperty("lastnodepath","lastnode.xml"));
+        this.lastNode = node;
+    }
+
+    private void writeNode(Element node, String filename) throws ClassNotFoundException, InstantiationException, IllegalAccessException, IOException {
+        // Get a factory (DOMImplementationLS) for creating a Load and Save object.
+        org.w3c.dom.ls.DOMImplementationLS impl =
+                (org.w3c.dom.ls.DOMImplementationLS)
+                        org.w3c.dom.bootstrap.DOMImplementationRegistry.newInstance().getDOMImplementation("LS");
+
+        // Use the factory to create an object (LSSerializer) used to
+        // write out or save the document.
+        org.w3c.dom.ls.LSSerializer writer = impl.createLSSerializer();
+        DOMConfiguration conf = writer.getDomConfig();
+        //conf.setParameter("format-pretty-print", Boolean.TRUE);
+
+        // Use the LSSerializer to write out or serialize the document to a String.
+
+        LSOutput lsOutput = impl.createLSOutput();
+        lsOutput.setEncoding("UTF-8");
+        Writer fileWriter = new FileWriter(filename);
+        lsOutput.setCharacterStream(fileWriter);
+
+        writer.write(node,lsOutput);
+    }
+
     private Element lastNode;
 
     public void activate() {
@@ -85,24 +149,32 @@ public class Feed implements Runnable{
                 } catch (XMPPException e1) {
                     e1.printStackTrace();
                 }
+            } catch (ClassNotFoundException e) {
+                e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+            } catch (InstantiationException e) {
+                e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+            } catch (IllegalAccessException e) {
+                e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
             }
         }
     }
 
-    private void processFeed() throws ParserConfigurationException, IOException, SAXException, XMPPException {
+    private void processFeed() throws ParserConfigurationException, IOException, SAXException, XMPPException, IllegalAccessException, ClassNotFoundException, InstantiationException {
 
         Document doc = builder.parse(link.openStream());
+
         LOGGER.info("Parse feed");
 
         NodeList nodes = doc.getElementsByTagName("item");
         LOGGER.info("Get items");
 
         int current = -1;
-        if (!isFirstRun){
+        if (!isFirstRun()){
             int i;
+            Element ln = getLastNode();
             for( i = 0;i<nodes.getLength();i++) {
                 Element element = (Element)nodes.item(i);
-                if (element.isEqualNode(lastNode)){
+                if (element.isEqualNode(ln)){
                     current = i;
                     break;
                 }
@@ -116,11 +188,11 @@ public class Feed implements Runnable{
 
         LOGGER.info(String.format("%s new of %s items",current,nodes.getLength()));
 
-        isFirstRun = false;
-
         if (nodes.getLength() > 0)
         {
-            lastNode = (Element)nodes.item(0);
+            setFirstRun(false);
+
+            setLastNode((Element) nodes.item(0));
 
             for(int i=0;i<current;i++){
                 Element element = (Element)nodes.item(i);

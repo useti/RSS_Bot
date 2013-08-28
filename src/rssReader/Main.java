@@ -13,7 +13,6 @@ import org.jivesoftware.smack.XMPPException;
 
 import javax.xml.parsers.ParserConfigurationException;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -62,8 +61,8 @@ public class Main {
                     config.getProperty("feedname"),
                     jabber,
                     config.getProperty("nodename"),
-                    java.util.logging.Level.FINE
-            );
+                    java.util.logging.Level.FINE,
+                    config);
             feed.activate();
         } catch (MalformedURLException e) {
             e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
