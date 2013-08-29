@@ -17,6 +17,7 @@ import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.Properties;
+import java.util.logging.Level;
 
 public class Main {
     public static void main(String[] args) {
@@ -61,7 +62,7 @@ public class Main {
                     config.getProperty("feedname"),
                     jabber,
                     config.getProperty("nodename"),
-                    java.util.logging.Level.FINE,
+                    Level.INFO,
                     config);
             feed.activate();
         } catch (MalformedURLException e) {

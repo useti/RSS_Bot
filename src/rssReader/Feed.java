@@ -74,7 +74,7 @@ public class Feed implements Runnable{
         try {
             config.store(new FileOutputStream(configFileName), null);
         } catch (IOException e) {
-            LOGGER.severe(e.toString());
+            LOGGER.warning(e.toString());
             //e.printStackTrace();
         }
     }
@@ -135,38 +135,38 @@ public class Feed implements Runnable{
         while (true)
         {
             try {
-                LOGGER.info("Start process feed");
+                LOGGER.fine("Start process feed");
                 processFeed();
-                LOGGER.info(String.format("Feed %s processed, sleep to %s seconds",link.toString(),checkInterval));
+                LOGGER.fine(String.format("Feed %s processed, sleep to %s seconds",link.toString(),checkInterval));
                 Thread.sleep(checkInterval * 1000);
             }
             catch (InterruptedException e) {
-                LOGGER.severe(e.toString());
+                LOGGER.warning(e.toString());
             } catch (ParserConfigurationException e) {
-                LOGGER.severe(e.toString());
+                LOGGER.warning(e.toString());
             } catch (IOException e) {
-                LOGGER.severe(e.toString());
+                LOGGER.warning(e.toString());
             } catch (SAXException e) {
-                LOGGER.severe(e.toString());
+                LOGGER.warning(e.toString());
             } catch (XMPPException e) {
                 LOGGER.warning(String.format("XMPP error %s",e));
                 //e.printStackTrace();
-                LOGGER.info("Reconnecting");
+                LOGGER.severe("Reconnecting");
                 jabber.disconnect();
-                LOGGER.info("Disconnected");
+                LOGGER.severe("Disconnected");
                 try {
-                    LOGGER.info("Connecting");
+                    LOGGER.severe("Connecting");
                     jabber.connect();
-                    LOGGER.info("Connected");
+                    LOGGER.severe("Connected");
                 } catch (XMPPException e1) {
-                    LOGGER.severe(e1.toString());
+                    LOGGER.warning(e1.toString());
                 }
             } catch (ClassNotFoundException e) {
-                LOGGER.severe(e.toString());
+                LOGGER.warning(e.toString());
             } catch (InstantiationException e) {
-                LOGGER.severe(e.toString());
+                LOGGER.warning(e.toString());
             } catch (IllegalAccessException e) {
-                LOGGER.severe(e.toString());
+                LOGGER.warning(e.toString());
             }
         }
     }
@@ -178,10 +178,10 @@ public class Feed implements Runnable{
 
         Document doc = builder.parse(connection.getInputStream());
 
-        LOGGER.info("Parse feed");
+        LOGGER.finest("Parse feed");
 
         NodeList nodes = doc.getElementsByTagName("item");
-        LOGGER.info("Get items");
+        LOGGER.finest("Get items");
 
         int current = -1;
         if (!isFirstRun()){
@@ -213,12 +213,12 @@ public class Feed implements Runnable{
                 try
                 {
                     Element element = (Element)nodes.item(i);
-                    LOGGER.info(String.format("Post item to %s",newsHub));
+                    LOGGER.fine(String.format("Post item to %s",newsHub));
                     printElement(element);
                 }
                 catch (Exception e)
                 {
-                    LOGGER.severe(e.toString());
+                    LOGGER.warning(e.toString());
                 }
             }
         }
@@ -234,13 +234,13 @@ public class Feed implements Runnable{
 
         LeafNode myNode = jabber.pmanager.getNode(newsHub);
 
-        LOGGER.info("Parse item");
+        LOGGER.finest("Parse item");
         NewsItem ni = new NewsItem(logLevel, element,newsHub);
 
-        LOGGER.info("Get payload");
+        LOGGER.finest("Get payload");
         PayloadItem p = ni.genPayload();
 
-        LOGGER.info("Post");
+        LOGGER.finest("Post");
         myNode.send(p);
     }
 
@@ -253,7 +253,7 @@ public class Feed implements Runnable{
             }
         }
         catch(Exception ex) {
-            LOGGER.severe(ex.toString());
+            LOGGER.warning(ex.toString());
         }
         return "";
     } //private String getCharacterDataFromElement
