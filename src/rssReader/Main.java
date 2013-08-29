@@ -56,7 +56,7 @@ public class Main {
             URL feed_url = new URL(config.getProperty("url"));
             int update_interval = Integer.parseInt(config.getProperty("interval"));
             Feed feed = new Feed(
-                    feed_url,
+                    "config.properties", feed_url,
                     update_interval,
                     config.getProperty("feedname"),
                     jabber,

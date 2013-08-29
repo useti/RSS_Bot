@@ -10,6 +10,8 @@ import org.w3c.dom.*;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.Date;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * Created with IntelliJ IDEA.
@@ -19,7 +21,9 @@ import java.util.Date;
  * To change this template use File | Settings | File Templates.
  */
 public class NewsItem implements IRss {
-    public NewsItem(Element item, String newsHub) throws MalformedURLException {
+    public NewsItem(Level logLevel, Element item, String newsHub) throws MalformedURLException {
+        this.logLevel = logLevel;
+        LOGGER.setLevel(this.logLevel);
         this.item = item;
         this.newsHub = newsHub;
 
@@ -29,14 +33,17 @@ public class NewsItem implements IRss {
         this.author = getElementValue(this.item,"dc:creator");
         this.description =  getElementValue(this.item,"description");
 
-        System.out.println("Title: " + getElementValue(this.item,"title"));
-        System.out.println("Link: " + getElementValue(this.item,"link"));
-        System.out.println("Publish Date: " + getElementValue(this.item,"pubDate"));
-        System.out.println("author: " + getElementValue(this.item,"dc:creator"));
-        System.out.println("comments: " + getElementValue(this.item,"wfw:comment"));
-        System.out.println("description: " + getElementValue(this.item,"description"));
-        System.out.println();
+        LOGGER.config(
+                "Title: " + getElementValue(this.item,"title") +
+                "\nLink: " + getElementValue(this.item,"link") +
+                "\nPublish Date: " + getElementValue(this.item,"pubDate") +
+                "\nAuthor: " + getElementValue(this.item,"dc:creator") +
+                "\nComments: " + getElementValue(this.item,"wfw:comment") +
+                "\nDescription: " + getElementValue(this.item,"description"));
     }
+
+    private final static Logger LOGGER = Logger.getLogger(NewsItem.class.getName());
+    private final Level logLevel;
 
     private String getCharacterDataFromElement(Element e) {
         try {
@@ -47,7 +54,7 @@ public class NewsItem implements IRss {
             }
         }
         catch(Exception ex) {
-
+            //LOGGER.severe(ex.toString());
         }
         return "";
     } //private String getCharacterDataFromElement
@@ -117,17 +124,8 @@ public class NewsItem implements IRss {
         props.setTranslateSpecialEntities(true);
         props.setTransSpecialEntitiesToNCR(true);
 
-//        TagNode t = cleaner.clean(title);
-//        String clean_title = t.toString();
-//
-//        t = cleaner.clean(author);
-//        String clean_author = t.toString();
-//
         TagNode t = cleaner.clean(String.format("<a href=\"%s\">%s</a>",link.toString(),link.toString()));
         String clean_link = cleaner.getInnerHtml(t);
-//
-//        t = cleaner.clean(pDate.toString());
-//        String clean_pDate = t.toString();
 
         t = cleaner.clean(description);
         String clean_description = cleaner.getInnerHtml(t);
@@ -145,6 +143,6 @@ public class NewsItem implements IRss {
                                 "<description>" + clean_description.replaceAll( "&([^;]+(?!(?:\\w|;)))", "&amp;$1" ) + "</description> " +
                                 "</post>"));
 
-        return p;  //To change body of implemented methods use File | Settings | File Templates.
+        return p;
     }
 }

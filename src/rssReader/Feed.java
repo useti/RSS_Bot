@@ -11,6 +11,7 @@ import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 import java.io.*;
+import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.Properties;
@@ -25,7 +26,17 @@ import java.util.logging.Logger;
  * To change this template use File | Settings | File Templates.
  */
 public class Feed implements Runnable{
-    public Feed(URL link, int checkInterval, String feedName, JabberClient jabber, String newsHub, Level logLevel, Properties config) throws ParserConfigurationException {
+    private final String configFileName;
+
+    public Feed(
+            String configFileName,
+            URL link,
+            int checkInterval,
+            String feedName,
+            JabberClient jabber,
+            String newsHub,
+            Level logLevel, Properties config) throws ParserConfigurationException {
+        this.configFileName = configFileName;
         this.link = link;
         this.checkInterval = checkInterval;
         this.feedName = feedName;
@@ -61,9 +72,10 @@ public class Feed implements Runnable{
         config.setProperty("firstrun", firstRun ? "true" : "false" );
 
         try {
-            config.store(new FileOutputStream("config.properties"), null);
+            config.store(new FileOutputStream(configFileName), null);
         } catch (IOException e) {
-            e.printStackTrace();
+            LOGGER.severe(e.toString());
+            //e.printStackTrace();
         }
     }
 
@@ -77,7 +89,7 @@ public class Feed implements Runnable{
 
             lastNode =  doc.getDocumentElement();
 
-            writeNode(lastNode, "testOutput.xml");
+            //writeNode(lastNode, "testOutput.xml");
 
             return lastNode;
         }
@@ -129,13 +141,13 @@ public class Feed implements Runnable{
                 Thread.sleep(checkInterval * 1000);
             }
             catch (InterruptedException e) {
-                e.printStackTrace();
+                LOGGER.severe(e.toString());
             } catch (ParserConfigurationException e) {
-                e.printStackTrace();
+                LOGGER.severe(e.toString());
             } catch (IOException e) {
-                e.printStackTrace();
+                LOGGER.severe(e.toString());
             } catch (SAXException e) {
-                e.printStackTrace();
+                LOGGER.severe(e.toString());
             } catch (XMPPException e) {
                 LOGGER.warning(String.format("XMPP error %s",e));
                 //e.printStackTrace();
@@ -147,21 +159,24 @@ public class Feed implements Runnable{
                     jabber.connect();
                     LOGGER.info("Connected");
                 } catch (XMPPException e1) {
-                    e1.printStackTrace();
+                    LOGGER.severe(e1.toString());
                 }
             } catch (ClassNotFoundException e) {
-                e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+                LOGGER.severe(e.toString());
             } catch (InstantiationException e) {
-                e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+                LOGGER.severe(e.toString());
             } catch (IllegalAccessException e) {
-                e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+                LOGGER.severe(e.toString());
             }
         }
     }
 
     private void processFeed() throws ParserConfigurationException, IOException, SAXException, XMPPException, IllegalAccessException, ClassNotFoundException, InstantiationException {
 
-        Document doc = builder.parse(link.openStream());
+        HttpURLConnection connection = (HttpURLConnection) link.openConnection();
+        connection.addRequestProperty("User-Agent", "Mozilla/4.76");
+
+        Document doc = builder.parse(connection.getInputStream());
 
         LOGGER.info("Parse feed");
 
@@ -194,10 +209,17 @@ public class Feed implements Runnable{
 
             setLastNode((Element) nodes.item(0));
 
-            for(int i=0;i<current;i++){
-                Element element = (Element)nodes.item(i);
-                LOGGER.info(String.format("Post item to %s",newsHub));
-                printElement(element);
+            for(int i=(current-1);i>=0;i--){
+                try
+                {
+                    Element element = (Element)nodes.item(i);
+                    LOGGER.info(String.format("Post item to %s",newsHub));
+                    printElement(element);
+                }
+                catch (Exception e)
+                {
+                    LOGGER.severe(e.toString());
+                }
             }
         }
 
@@ -213,7 +235,7 @@ public class Feed implements Runnable{
         LeafNode myNode = jabber.pmanager.getNode(newsHub);
 
         LOGGER.info("Parse item");
-        NewsItem ni = new NewsItem(element,newsHub);
+        NewsItem ni = new NewsItem(logLevel, element,newsHub);
 
         LOGGER.info("Get payload");
         PayloadItem p = ni.genPayload();
@@ -231,7 +253,7 @@ public class Feed implements Runnable{
             }
         }
         catch(Exception ex) {
-
+            LOGGER.severe(ex.toString());
         }
         return "";
     } //private String getCharacterDataFromElement
