@@ -16,10 +16,11 @@ public final class JabberClient {
         public Builder setUser(String user) {this.user = user; return this;}
         public Builder setPassword(String password) {this.password = password; return this;}
         public Builder setService(String service) {this.service = service; return this;}
+        public Builder setResource(String resource) {this.resource = resource; return this;}
 
         private final String addr;
         private int port = 5222;
-        private String user, password, service;
+        private String user, password, service, resource;
 
     }
 

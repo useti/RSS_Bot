@@ -42,6 +42,7 @@ public class Main {
                 .setPassword(config.getProperty("pwd"))
                 .setPort(5222)
                 .setUser(config.getProperty("jid"))
+                .setResource(config.getProperty("nodename"))
                 //.setService(params.get("jservice").trim())
                 .build();
             jabber.setSASLAuthenticationEnabled(true);
@@ -59,7 +60,7 @@ public class Main {
             Feed feed = new Feed(
                     "config.properties", feed_url,
                     update_interval,
-                    config.getProperty("feedname"),
+                    config.getProperty("nodename"),
                     jabber,
                     config.getProperty("nodename"),
                     Level.INFO,
