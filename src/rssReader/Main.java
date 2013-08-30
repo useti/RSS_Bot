@@ -21,7 +21,7 @@ import java.util.logging.Level;
 
 public class Main {
     public static void main(String[] args) {
-        XMPPConnection.DEBUG_ENABLED = true;
+        //XMPPConnection.DEBUG_ENABLED = true;
         try {
             new Main(args);
         } catch (IOException e) {
