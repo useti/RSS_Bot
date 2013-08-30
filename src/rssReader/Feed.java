@@ -26,6 +26,7 @@ import java.util.logging.Logger;
  * To change this template use File | Settings | File Templates.
  */
 public class Feed implements Runnable{
+
     private final String configFileName;
 
     public Feed(
@@ -268,5 +269,12 @@ public class Feed implements Runnable{
 
     protected String getElementValue(Element parent,String label) {
         return getCharacterDataFromElement((Element)parent.getElementsByTagName(label).item(0));
+    }
+
+    @Override
+    public String toString() {
+        return "Feed [feedName=\"" + feedName + "\", link=\"" + link.toString() + "\", checkInterval="
+                + checkInterval + ", newsHub=\"" + newsHub +
+                "\"]";
     }
 }

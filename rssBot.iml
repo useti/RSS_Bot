@@ -9,6 +9,7 @@
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="library" name="smackx-jingle" level="project" />
     <orderEntry type="library" name="net.sourceforge.htmlcleaner:htmlcleaner:2.6" level="project" />
+    <orderEntry type="library" name="com.google.code.gson:gson:2.2.4" level="project" />
   </component>
 </module>
 
