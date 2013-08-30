@@ -74,7 +74,7 @@ public class Feed implements Runnable{
         try {
             config.store(new FileOutputStream(configFileName), null);
         } catch (IOException e) {
-            LOGGER.warning(e.toString());
+            LOGGER.warning(String.format("%s - %s", feedName, e.toString()));
             //e.printStackTrace();
         }
     }
@@ -127,7 +127,7 @@ public class Feed implements Runnable{
 
     public void activate() {
         new Thread(this, feedName ).start();
-        LOGGER.info(String.format("Feed %s activated",link.toString()));
+        LOGGER.info(String.format("%s - Feed %s activated",feedName,link.toString()));
     }
 
     @Override
@@ -135,39 +135,44 @@ public class Feed implements Runnable{
         while (true)
         {
             try {
-                LOGGER.fine("Start process feed");
+                LOGGER.fine(String.format("%s - Start process feed",feedName));
                 processFeed();
-                LOGGER.fine(String.format("Feed %s processed, sleep to %s seconds",link.toString(),checkInterval));
+                LOGGER.fine(String.format("%s - Feed %s processed, sleep to %s seconds",feedName,link.toString(),checkInterval));
                 Thread.sleep(checkInterval * 1000);
             }
             catch (InterruptedException e) {
-                LOGGER.warning(e.toString());
+                LOGGER.warning(String.format("%s - %s",feedName,e.toString()));
             } catch (ParserConfigurationException e) {
-                LOGGER.warning(e.toString());
+                LOGGER.warning(String.format("%s - %s", feedName, e.toString()));
             } catch (IOException e) {
-                LOGGER.warning(e.toString());
+                LOGGER.warning(String.format("%s - %s", feedName, e.toString()));
             } catch (SAXException e) {
                 LOGGER.warning(e.toString());
             } catch (XMPPException e) {
-                LOGGER.warning(String.format("XMPP error %s",e));
+                LOGGER.warning(String.format("%s - XMPP error %s",feedName,e));
                 //e.printStackTrace();
-                LOGGER.severe("Reconnecting");
-                jabber.disconnect();
-                LOGGER.severe("Disconnected");
-                try {
-                    LOGGER.severe("Connecting");
-                    jabber.connect();
-                    LOGGER.severe("Connected");
-                } catch (XMPPException e1) {
-                    LOGGER.warning(e1.toString());
-                }
+                reconnect();
             } catch (ClassNotFoundException e) {
-                LOGGER.warning(e.toString());
+                LOGGER.warning(String.format("%s - %s", feedName, e.toString()));
             } catch (InstantiationException e) {
-                LOGGER.warning(e.toString());
+                LOGGER.warning(String.format("%s - %s", feedName, e.toString()));
             } catch (IllegalAccessException e) {
-                LOGGER.warning(e.toString());
+                LOGGER.warning(String.format("%s - %s", feedName, e.toString()));
+                reconnect();
             }
+        }
+    }
+
+    private void reconnect() {
+        LOGGER.severe(String.format("%s - Reconnecting",feedName));
+        jabber.disconnect();
+        LOGGER.severe(String.format("%s - Disconnected",feedName));
+        try {
+            LOGGER.severe(String.format("%s - Connecting",feedName));
+            jabber.connect();
+            LOGGER.severe(String.format("%s - Connected",feedName));
+        } catch (XMPPException e1) {
+            LOGGER.warning(String.format("%s - %s", e1.toString()));
         }
     }
 
@@ -178,10 +183,10 @@ public class Feed implements Runnable{
 
         Document doc = builder.parse(connection.getInputStream());
 
-        LOGGER.finest("Parse feed");
+        LOGGER.finest(String.format("%s - Parse feed",feedName));
 
         NodeList nodes = doc.getElementsByTagName("item");
-        LOGGER.finest("Get items");
+        LOGGER.finest(String.format("%s - Get items",feedName));
 
         int current = -1;
         if (!isFirstRun()){
@@ -201,26 +206,22 @@ public class Feed implements Runnable{
                 current = nodes.getLength();
         }
 
-        LOGGER.info(String.format("%s new of %s items",current,nodes.getLength()));
+        LOGGER.info(String.format("%s - %s new of %s items",feedName,current,nodes.getLength()));
 
         if (nodes.getLength() > 0)
         {
             setFirstRun(false);
 
-            setLastNode((Element) nodes.item(0));
-
             for(int i=(current-1);i>=0;i--){
-                try
-                {
+                try {
                     Element element = (Element)nodes.item(i);
-                    LOGGER.fine(String.format("Post item to %s",newsHub));
+                    LOGGER.fine(String.format("%s - Post item to %s", feedName, newsHub));
                     printElement(element);
-                }
-                catch (Exception e)
-                {
-                    LOGGER.warning(e.toString());
+                }catch (Exception e){
+                    LOGGER.warning(String.format("%s -%s",feedName,e.toString()));
                 }
             }
+            setLastNode((Element) nodes.item(0));
         }
 
     }
@@ -234,13 +235,13 @@ public class Feed implements Runnable{
 
         LeafNode myNode = jabber.pmanager.getNode(newsHub);
 
-        LOGGER.finest("Parse item");
+        LOGGER.finest(String.format("%s - Parse item",feedName));
         NewsItem ni = new NewsItem(logLevel, element,newsHub);
 
-        LOGGER.finest("Get payload");
+        LOGGER.finest(String.format("%s - Get payload",feedName));
         PayloadItem p = ni.genPayload();
 
-        LOGGER.finest("Post");
+        LOGGER.finest(String.format("%s - Post",feedName));
         myNode.send(p);
     }
 
@@ -253,7 +254,7 @@ public class Feed implements Runnable{
             }
         }
         catch(Exception ex) {
-            LOGGER.warning(ex.toString());
+            LOGGER.warning(String.format("%s - %s", feedName, ex.toString()));
         }
         return "";
     } //private String getCharacterDataFromElement
