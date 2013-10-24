@@ -8,7 +8,6 @@ package rssReader;
  * To change this template use File | Settings | File Templates.
  */
 
-import org.jivesoftware.smack.XMPPConnection;
 import org.jivesoftware.smack.XMPPException;
 
 import javax.xml.parsers.ParserConfigurationException;
@@ -16,6 +15,7 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.security.NoSuchAlgorithmException;
 import java.util.Properties;
 import java.util.logging.Level;
 
@@ -63,12 +63,16 @@ public class Main {
                     config.getProperty("nodename"),
                     jabber,
                     config.getProperty("nodename"),
-                    Level.INFO,
+                    Level.ALL,
                     config);
             feed.activate();
         } catch (MalformedURLException e) {
             e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
         } catch (ParserConfigurationException e) {
+            e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+        } catch (NoSuchAlgorithmException e) {
+            e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+        } catch (CloneNotSupportedException e) {
             e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
         }
 

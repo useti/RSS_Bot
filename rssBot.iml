@@ -10,6 +10,8 @@
     <orderEntry type="library" name="smackx-jingle" level="project" />
     <orderEntry type="library" name="net.sourceforge.htmlcleaner:htmlcleaner:2.6" level="project" />
     <orderEntry type="library" name="com.google.code.gson:gson:2.2.4" level="project" />
+    <orderEntry type="library" name="horrorss-2.2.0" level="project" />
+    <orderEntry type="library" name="sparta" level="project" />
   </component>
 </module>
 

@@ -1,5 +1,6 @@
 package rssReader;
 
+import org.horrabin.horrorss.RssItemBean;
 import org.htmlcleaner.CleanerProperties;
 import org.htmlcleaner.HtmlCleaner;
 import org.htmlcleaner.TagNode;
@@ -40,6 +41,28 @@ public class NewsItem implements IRss {
                 "\nAuthor: " + getElementValue(this.item,"dc:creator") +
                 "\nComments: " + getElementValue(this.item,"wfw:comment") +
                 "\nDescription: " + getElementValue(this.item,"description"));
+    }
+
+    public NewsItem(Level logLevel, RssItemBean item, String newsHub) throws MalformedURLException {
+        this.logLevel = logLevel;
+        LOGGER.setLevel(this.logLevel);
+//        this.item = item;
+        this.newsHub = newsHub;
+
+        this.title = item.getTitle();
+        this.link = new URL(item.getLink());
+        this.pDate = item.getPubDate();
+        this.author = item.getAuthor();
+        this.description =  item.getDescription();
+
+        LOGGER.config(
+                "Title: " + title +
+                        "\nLink: " + link +
+                        "\nPublish Date: " + pDate +
+                        "\nAuthor: " + author +
+                        "\nComments: " + "" +
+                        "\nDescription: " + description);
+        this.item = null;
     }
 
     private final static Logger LOGGER = Logger.getLogger(NewsItem.class.getName());
@@ -130,6 +153,8 @@ public class NewsItem implements IRss {
         t = cleaner.clean(description);
         String clean_description = cleaner.getInnerHtml(t);
 
+        String clean_author = author == null ? "": author;
+
         PayloadItem p = new PayloadItem(
             newsHub + "-" + System.currentTimeMillis(),
                 new SimplePayload(
@@ -137,7 +162,7 @@ public class NewsItem implements IRss {
                         "pubsub:" + newsHub + ":post",
                         "<post xmlns='pubsub:" + newsHub + ":post'>" +
                                 "<title>" + title.replaceAll( "&([^;]+(?!(?:\\w|;)))", "&amp;$1" ) + "</title>"+
-                                "<author>" + author.replaceAll( "&([^;]+(?!(?:\\w|;)))", "&amp;$1" ) + "</author> " +
+                                "<author>" + clean_author.replaceAll( "&([^;]+(?!(?:\\w|;)))", "&amp;$1" ) + "</author> " +
                                 "<link>" + clean_link.toString().replaceAll( "&([^;]+(?!(?:\\w|;)))", "&amp;$1" ) + "</link>" +
                                 "<pDate>"+ pDate.toString().replaceAll( "&([^;]+(?!(?:\\w|;)))", "&amp;$1" ) +"</pDate> " +
                                 "<description>" + clean_description.replaceAll( "&([^;]+(?!(?:\\w|;)))", "&amp;$1" ) + "</description> " +

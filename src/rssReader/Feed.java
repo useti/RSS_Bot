@@ -1,19 +1,26 @@
 package rssReader;
 
+import org.horrabin.horrorss.RssChannelBean;
+import org.horrabin.horrorss.RssFeed;
+import org.horrabin.horrorss.RssItemBean;
+import org.horrabin.horrorss.RssParser;
 import org.jivesoftware.smack.XMPPException;
 import org.jivesoftware.smackx.pubsub.*;
-import org.w3c.dom.*;
+import org.w3c.dom.CharacterData;
+import org.w3c.dom.Element;
 import org.w3c.dom.Node;
-import org.w3c.dom.ls.LSOutput;
 import org.xml.sax.SAXException;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
-import java.io.*;
-import java.net.HttpURLConnection;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.util.List;
 import java.util.Properties;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -29,6 +36,8 @@ public class Feed implements Runnable{
 
     private final String configFileName;
 
+    private final RssParser rss;
+
     public Feed(
             String configFileName,
             URL link,
@@ -36,7 +45,7 @@ public class Feed implements Runnable{
             String feedName,
             JabberClient jabber,
             String newsHub,
-            Level logLevel, Properties config) throws ParserConfigurationException {
+            Level logLevel, Properties config) throws ParserConfigurationException, NoSuchAlgorithmException, CloneNotSupportedException {
         this.configFileName = configFileName;
         this.link = link;
         this.checkInterval = checkInterval;
@@ -46,7 +55,10 @@ public class Feed implements Runnable{
         this.logLevel = logLevel;
         this.config = config;
         this.isFirstRun = config.getProperty("firstrun").equals("true");
+        this.rss = new RssParser();
         LOGGER.setLevel(this.logLevel);
+
+        md = MessageDigest.getInstance("MD5");
 
         builder = DocumentBuilderFactory.newInstance().newDocumentBuilder();
     }
@@ -59,6 +71,7 @@ public class Feed implements Runnable{
     private final DocumentBuilder builder;
     private final Level logLevel;
     private final Properties config;
+    private MessageDigest md;
 
     private final static Logger LOGGER = Logger.getLogger(Feed.class.getName());
 
@@ -82,49 +95,31 @@ public class Feed implements Runnable{
 
     private boolean isFirstRun;
 
-    public Element getLastNode() throws IOException, SAXException, InstantiationException, IllegalAccessException, ClassNotFoundException {
-        if (lastNode == null)
-        {
-            File fXmlFile = new File(config.getProperty("lastnodepath","lastnode.xml"));
-            Document doc = builder.parse(fXmlFile);
+    public String getLastHash(){
+        return config.getProperty("lasttnodehash");
+    }
 
-            lastNode =  doc.getDocumentElement();
+    public void setLastNode(RssItemBean node) throws CloneNotSupportedException {
+        String nods = node.getTitle();
+        String ret = getHash(nods);
+        config.setProperty("lasttnodehash",ret);
 
-            //writeNode(lastNode, "testOutput.xml");
-
-            return lastNode;
+        try {
+            config.store(new FileOutputStream(configFileName), null);
+        } catch (IOException e) {
+            LOGGER.warning(String.format("%s - %s", feedName, e.toString()));
+            //e.printStackTrace();
         }
-        return lastNode;
     }
 
-    public void setLastNode(Element node) throws InstantiationException, IllegalAccessException, ClassNotFoundException, IOException {
-        writeNode(node, config.getProperty("lastnodepath","lastnode.xml"));
-        this.lastNode = node;
+    private String getHash(String nods) throws CloneNotSupportedException {
+        md.update(nods.getBytes());
+//        MessageDigest tc1 = (MessageDigest) md.clone();
+        byte[] digest = md.digest();
+        String ret = new String(digest);
+        md.reset();
+        return ret;
     }
-
-    private void writeNode(Element node, String filename) throws ClassNotFoundException, InstantiationException, IllegalAccessException, IOException {
-        // Get a factory (DOMImplementationLS) for creating a Load and Save object.
-        org.w3c.dom.ls.DOMImplementationLS impl =
-                (org.w3c.dom.ls.DOMImplementationLS)
-                        org.w3c.dom.bootstrap.DOMImplementationRegistry.newInstance().getDOMImplementation("LS");
-
-        // Use the factory to create an object (LSSerializer) used to
-        // write out or save the document.
-        org.w3c.dom.ls.LSSerializer writer = impl.createLSSerializer();
-        DOMConfiguration conf = writer.getDomConfig();
-        //conf.setParameter("format-pretty-print", Boolean.TRUE);
-
-        // Use the LSSerializer to write out or serialize the document to a String.
-
-        LSOutput lsOutput = impl.createLSOutput();
-        lsOutput.setEncoding("UTF-8");
-        Writer fileWriter = new FileWriter(filename);
-        lsOutput.setCharacterStream(fileWriter);
-
-        writer.write(node,lsOutput);
-    }
-
-    private Element lastNode;
 
     public void activate() {
         new Thread(this, feedName ).start();
@@ -160,6 +155,9 @@ public class Feed implements Runnable{
             } catch (IllegalAccessException e) {
                 LOGGER.warning(String.format("%s - %s", feedName, e.toString()));
                 reconnect();
+            } catch (Exception e) {
+                LOGGER.warning(String.format("%s - %s", feedName, e.toString()));
+//                e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
             }
         }
     }
@@ -177,54 +175,83 @@ public class Feed implements Runnable{
         }
     }
 
-    private void processFeed() throws ParserConfigurationException, IOException, SAXException, XMPPException, IllegalAccessException, ClassNotFoundException, InstantiationException {
+    private void processFeed() throws Exception {
 
-        HttpURLConnection connection = (HttpURLConnection) link.openConnection();
-        connection.addRequestProperty("User-Agent", "Mozilla/4.76");
+        String url = link.toString();
+        RssFeed feed = rss.load(url);
 
-        Document doc = builder.parse(connection.getInputStream());
-
+        RssChannelBean channel = feed.getChannel();
         LOGGER.finest(String.format("%s - Parse feed",feedName));
+        LOGGER.finest(String.format("Feed Title: %s",channel.getTitle()));
 
-        NodeList nodes = doc.getElementsByTagName("item");
+        // Gets and iterate the items of the feed
         LOGGER.finest(String.format("%s - Get items",feedName));
+        List<RssItemBean> items = feed.getItems();
 
         int current = -1;
+
         if (!isFirstRun()){
             int i;
-            Element ln = getLastNode();
-            for( i = 0;i<nodes.getLength();i++) {
-                Element element = (Element)nodes.item(i);
-                if (element.isEqualNode(ln)){
+            String ln = getLastHash();
+            for( i = 0;i<items.size();i++) {
+                RssItemBean item = items.get(i);
+                String itm = item.getTitle();
+                itm = getHash(itm);
+                if (itm.contains(ln)){
                     current = i;
                     break;
                 }
             }
             if (current < 0)
-                current = nodes.getLength();
+                current = items.size();
         } else {
-            if (current < 0)
-                current = nodes.getLength();
+        if (current < 0)
+            current = items.size();
         }
 
-        LOGGER.info(String.format("%s - %s new of %s items",feedName,current,nodes.getLength()));
+        LOGGER.info(String.format("%s - %s new of %s items",feedName,current,items.size()));
 
-        if (nodes.getLength() > 0)
+        if (items.size() > 0)
         {
             setFirstRun(false);
 
             for(int i=(current-1);i>=0;i--){
                 try {
-                    Element element = (Element)nodes.item(i);
+                    //Element element = (Element)nodes.item(i);
+                    RssItemBean item = items.get(i);
                     LOGGER.fine(String.format("%s - Post item to %s", feedName, newsHub));
-                    printElement(element);
+                    printElement(item);
                 }catch (Exception e){
                     LOGGER.warning(String.format("%s -%s",feedName,e.toString()));
                 }
             }
-            setLastNode((Element) nodes.item(0));
+            setLastNode(items.get(0));
         }
 
+//        for (int i=0; i<items.size(); i++){
+//            RssItemBean item = items.get(i);
+//            System.out.println("Title: " + item.getTitle());
+//            System.out.println("Link : " + item.getLink());
+//            System.out.println("Desc.: " + item.getDescription());
+//        }
+    }
+
+    private void printElement(RssItemBean element) throws XMPPException, MalformedURLException {
+        ConfigureForm form = new ConfigureForm(FormType.submit);
+        form.setPersistentItems(false);
+        form.setDeliverPayloads(true);
+        form.setAccessModel(AccessModel.open);
+
+        LeafNode myNode = jabber.pmanager.getNode(newsHub);
+
+        LOGGER.finest(String.format("%s - Parse item",feedName));
+        NewsItem ni = new NewsItem(logLevel, element , newsHub);
+
+        LOGGER.finest(String.format("%s - Get payload",feedName));
+        PayloadItem p = ni.genPayload();
+
+        LOGGER.finest(String.format("%s - Post",feedName));
+        myNode.send(p);
     }
 
     private void printElement(Element element) throws XMPPException, MalformedURLException {
