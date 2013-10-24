@@ -237,41 +237,62 @@ public class Feed implements Runnable{
     }
 
     private void printElement(RssItemBean element) throws XMPPException, MalformedURLException {
-        ConfigureForm form = new ConfigureForm(FormType.submit);
-        form.setPersistentItems(false);
-        form.setDeliverPayloads(true);
-        form.setAccessModel(AccessModel.open);
+//        ConfigureForm form = new ConfigureForm(FormType.submit);
+//        form.setPersistentItems(false);
+//        form.setDeliverPayloads(true);
+//        form.setAccessModel(AccessModel.open);
 
-        LeafNode myNode = jabber.pmanager.getNode(newsHub);
-
+        LeafNode myNode = null;
         LOGGER.finest(String.format("%s - Parse item",feedName));
         NewsItem ni = new NewsItem(logLevel, element , newsHub);
 
         LOGGER.finest(String.format("%s - Get payload",feedName));
         PayloadItem p = ni.genPayload();
 
-        LOGGER.finest(String.format("%s - Post",feedName));
-        myNode.send(p);
+        try {
+            myNode = jabber.pmanager.getNode(newsHub);
+
+            LOGGER.finest(String.format("%s - Post",feedName));
+            myNode.send(p);
+        } catch (Exception e){
+            LOGGER.warning(String.format("%s - %s", feedName, e.toString()));
+            if(e.toString().contains("item-not-found(404)")){
+                ConfigureForm form = new ConfigureForm(FormType.submit);
+                form.setAccessModel(AccessModel.open);
+                form.setDeliverPayloads(true);
+                form.setNotifyRetract(true);
+                form.setPersistentItems(false);
+                form.setPublishModel(PublishModel.open);
+                form.setSubscribe(true);
+
+                LeafNode leaf = (LeafNode) jabber.pmanager.createNode(newsHub, form);
+                leaf.subscribe(jabber.getJid());
+
+                LOGGER.finest(String.format("%s - Post",feedName));
+                leaf.send(p);
+            }
+
+        }
     }
 
-    private void printElement(Element element) throws XMPPException, MalformedURLException {
-
-        ConfigureForm form = new ConfigureForm(FormType.submit);
-        form.setPersistentItems(false);
-        form.setDeliverPayloads(true);
-        form.setAccessModel(AccessModel.open);
-
-        LeafNode myNode = jabber.pmanager.getNode(newsHub);
-
-        LOGGER.finest(String.format("%s - Parse item",feedName));
-        NewsItem ni = new NewsItem(logLevel, element,newsHub);
-
-        LOGGER.finest(String.format("%s - Get payload",feedName));
-        PayloadItem p = ni.genPayload();
-
-        LOGGER.finest(String.format("%s - Post",feedName));
-        myNode.send(p);
-    }
+//    private void printElement(Element element) throws XMPPException, MalformedURLException {
+//
+//        ConfigureForm form = new ConfigureForm(FormType.submit);
+//        form.setPersistentItems(false);
+//        form.setDeliverPayloads(true);
+//        form.setAccessModel(AccessModel.open);
+//
+//        LeafNode myNode = jabber.pmanager.getNode(newsHub);
+//
+//        LOGGER.finest(String.format("%s - Parse item",feedName));
+//        NewsItem ni = new NewsItem(logLevel, element,newsHub);
+//
+//        LOGGER.finest(String.format("%s - Get payload",feedName));
+//        PayloadItem p = ni.genPayload();
+//
+//        LOGGER.finest(String.format("%s - Post",feedName));
+//        myNode.send(p);
+//    }
 
     private String getCharacterDataFromElement(Element e) {
         try {

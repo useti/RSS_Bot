@@ -67,7 +67,7 @@ public final class JabberClient {
     public XMPPConnection connect() throws XMPPException {
         conn = new XMPPConnection(conn_config);
         conn.connect();
-        conn.login(pr.user, pr.password, "rss");
+        conn.login(pr.user, pr.password, pr.resource);
         pmanager = new PubSubManager(conn);
         return conn;
     }
