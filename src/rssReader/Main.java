@@ -63,7 +63,7 @@ public class Main {
                     config.getProperty("nodename"),
                     jabber,
                     config.getProperty("nodename"),
-                    Level.ALL,
+                    Level.INFO,
                     config);
             feed.activate();
         } catch (MalformedURLException e) {

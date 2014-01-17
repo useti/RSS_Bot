@@ -56,6 +56,7 @@ public class Feed implements Runnable{
         this.config = config;
         this.isFirstRun = config.getProperty("firstrun").equals("true");
         this.rss = new RssParser();
+
         LOGGER.setLevel(this.logLevel);
 
         md = MessageDigest.getInstance("MD5");
@@ -203,7 +204,8 @@ public class Feed implements Runnable{
                 }
             }
             if (current < 0)
-                current = items.size();
+                //current = items.size();
+                current = 0; // overrun fix - better to miss some articles than send twice
         } else {
         if (current < 0)
             current = items.size();
