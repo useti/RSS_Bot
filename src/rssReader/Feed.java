@@ -20,6 +20,7 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
 import java.util.logging.Level;
@@ -179,15 +180,13 @@ public class Feed implements Runnable{
     private void processFeed() throws Exception {
 
         String url = link.toString();
-        RssFeed feed = rss.load(url);
 
-        RssChannelBean channel = feed.getChannel();
-        LOGGER.finest(String.format("%s - Parse feed",feedName));
-        LOGGER.finest(String.format("Feed Title: %s",channel.getTitle()));
-
-        // Gets and iterate the items of the feed
-        LOGGER.finest(String.format("%s - Get items",feedName));
-        List<RssItemBean> items = feed.getItems();
+        List<RssItemBean> items  = new ArrayList<RssItemBean>(200);
+        int numpages = Integer.parseInt(config.getProperty("pages"));
+        for(int i = 1; i <= numpages; i++)
+        {
+            items.addAll(loadItems(url + String.format("&page=%s",i)));
+        }
 
         int current = -1;
 
@@ -236,6 +235,18 @@ public class Feed implements Runnable{
 //            System.out.println("Link : " + item.getLink());
 //            System.out.println("Desc.: " + item.getDescription());
 //        }
+    }
+
+    private List<RssItemBean> loadItems(String url) throws Exception {
+        RssFeed feed = rss.load(url);
+
+        RssChannelBean channel = feed.getChannel();
+        LOGGER.finest(String.format("%s - Parse feed",feedName));
+        LOGGER.finest(String.format("Feed Title: %s",channel.getTitle()));
+
+        // Gets and iterate the items of the feed
+        LOGGER.finest(String.format("%s - Get items",feedName));
+        return feed.getItems();
     }
 
     private void printElement(RssItemBean element) throws XMPPException, MalformedURLException {
