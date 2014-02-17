@@ -52,8 +52,8 @@ public class NewsItem implements IRss {
         this.title = item.getTitle();
         this.link = new URL(item.getLink());
         this.pDate = item.getPubDate();
-        this.author = item.getAuthor();
-        this.description =  item.getDescription();
+        this.author = item.getAuthor() == null ? "" :item.getAuthor();
+        this.description = item.getDescription()==null ? item.getLink() : item.getDescription();
 
         LOGGER.config(
                 "Title: " + title +

@@ -267,6 +267,7 @@ public class Feed implements Runnable{
 
             LOGGER.finest(String.format("%s - Post",feedName));
             myNode.send(p);
+            Thread.sleep(100);
         } catch (Exception e){
             LOGGER.warning(String.format("%s - %s", feedName, e.toString()));
             if(e.toString().contains("item-not-found(404)")){

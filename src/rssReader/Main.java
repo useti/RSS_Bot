@@ -18,6 +18,7 @@ import java.net.URL;
 import java.security.NoSuchAlgorithmException;
 import java.util.Properties;
 import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class Main {
     public static void main(String[] args) {
@@ -29,12 +30,20 @@ public class Main {
         }
     }
 
+    private final static Logger LOGGER = Logger.getLogger(Main.class.getName());
+
     private final Properties config;
+    private final Level logLevel;
+
 
     private Main(String[] argv) throws IOException {
 
         config = new Properties();
         config.load(new FileInputStream("config.properties"));
+
+        logLevel = Level.parse(config.getProperty("loginfo"));
+
+        LOGGER.setLevel(logLevel);
 
 
         try {
@@ -51,8 +60,15 @@ public class Main {
 
             try {
                 jabber.connect();
+                while (!jabber.conn.isConnected())
+                {
+                    LOGGER.fine("Wait connection ...");
+                    Thread.sleep(1000);
+                }
             } catch (XMPPException e) {
                 e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+            } catch (InterruptedException e) {
+                e.printStackTrace();
             }
 
             URL feed_url = new URL(config.getProperty("url"));
@@ -63,7 +79,7 @@ public class Main {
                     config.getProperty("nodename"),
                     jabber,
                     config.getProperty("nodename"),
-                    Level.INFO,
+                    logLevel,
                     config);
             feed.activate();
         } catch (MalformedURLException e) {
