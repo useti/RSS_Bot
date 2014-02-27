@@ -246,7 +246,11 @@ public class Feed implements Runnable{
 
         // Gets and iterate the items of the feed
         LOGGER.finest(String.format("%s - Get items",feedName));
-        return feed.getItems();
+        List<RssItemBean> ret = feed.getItems();
+
+        LOGGER.finest(String.format("For url(%s) we have %s items",url ,ret.size()));
+
+        return ret;
     }
 
     private void printElement(RssItemBean element) throws XMPPException, MalformedURLException {
