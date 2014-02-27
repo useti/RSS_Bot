@@ -183,9 +183,20 @@ public class Feed implements Runnable{
 
         List<RssItemBean> items  = new ArrayList<RssItemBean>(200);
         int numpages = Integer.parseInt(config.getProperty("pages"));
+        int prewsize = 0;
         for(int i = 1; i <= numpages; i++)
         {
-            items.addAll(loadItems(url + String.format("&page=%s",i)));
+            List<RssItemBean> titm = loadItems(url + String.format("&page=%s", i));
+            if (i>1)
+            {
+                if(titm.size() <= prewsize)
+                {
+                    items.addAll(titm);
+                }
+            }
+            else
+                items.addAll(titm);
+            prewsize = titm.size();
         }
 
         int current = -1;
