@@ -199,6 +199,12 @@ public class Feed implements Runnable{
             prewsize = titm.size();
         }
 
+
+        // TODO : 1 Calculate hash for each item in items
+        // TODO : 2 If firstrun - store each hash in file and publish items
+        // TODO : 3a If !firstrun - find hash's which not in file and publish them
+        // TODO : 3b find in file all hash's wich not in calculated and remove them
+
         int current = -1;
 
         if (!isFirstRun()){
