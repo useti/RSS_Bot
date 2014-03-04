@@ -6,6 +6,9 @@ import org.horrabin.horrorss.RssItemBean;
 import org.horrabin.horrorss.RssParser;
 import org.jivesoftware.smack.XMPPException;
 import org.jivesoftware.smackx.pubsub.*;
+import org.json.simple.JSONObject;
+import org.json.simple.parser.JSONParser;
+import org.json.simple.parser.ParseException;
 import org.w3c.dom.CharacterData;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -15,14 +18,14 @@ import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 import java.io.FileOutputStream;
+import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Properties;
+import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -60,11 +63,14 @@ public class Feed implements Runnable{
 
         LOGGER.setLevel(this.logLevel);
 
+        itemMap = new HashMap<String, Integer>(200);
+
         md = MessageDigest.getInstance("MD5");
 
         builder = DocumentBuilderFactory.newInstance().newDocumentBuilder();
     }
 
+    private Map<String, Integer> itemMap;
     private final URL link;
     private final int checkInterval;
     private final String feedName;
@@ -97,28 +103,39 @@ public class Feed implements Runnable{
 
     private boolean isFirstRun;
 
-    public String getLastHash(){
-        return config.getProperty("lasttnodehash");
-    }
+//    public String getLastHash(){
+//        return config.getProperty("lasttnodehash");
+//    }
 
-    public void setLastNode(RssItemBean node) throws CloneNotSupportedException {
-        String nods = node.getTitle();
-        String ret = getHash(nods);
-        config.setProperty("lasttnodehash",ret);
+//    public void setLastNode(RssItemBean node) throws CloneNotSupportedException {
+//        String nods = node.getTitle();
+//        String ret = getHash(nods);
+//        config.setProperty("lasttnodehash",ret);
+//
+//        try {
+//            config.store(new FileOutputStream(configFileName), null);
+//        } catch (IOException e) {
+//            LOGGER.warning(String.format("%s - %s", feedName, e.toString()));
+//            //e.printStackTrace();
+//        }
+//    }
 
-        try {
-            config.store(new FileOutputStream(configFileName), null);
-        } catch (IOException e) {
-            LOGGER.warning(String.format("%s - %s", feedName, e.toString()));
-            //e.printStackTrace();
+    final protected static char[] hexArray = "0123456789ABCDEF".toCharArray();
+    public static String bytesToHex(byte[] bytes) {
+        char[] hexChars = new char[bytes.length * 2];
+        for ( int j = 0; j < bytes.length; j++ ) {
+            int v = bytes[j] & 0xFF;
+            hexChars[j * 2] = hexArray[v >>> 4];
+            hexChars[j * 2 + 1] = hexArray[v & 0x0F];
         }
+        return new String(hexChars);
     }
 
     private String getHash(String nods) throws CloneNotSupportedException {
         md.update(nods.getBytes());
 //        MessageDigest tc1 = (MessageDigest) md.clone();
         byte[] digest = md.digest();
-        String ret = new String(digest);
+        String ret = bytesToHex(digest);
         md.reset();
         return ret;
     }
@@ -199,59 +216,93 @@ public class Feed implements Runnable{
             prewsize = titm.size();
         }
 
-
-        // TODO : 1 Calculate hash for each item in items
-        // TODO : 2 If firstrun - store each hash in file and publish items
-        // TODO : 3a If !firstrun - find hash's which not in file and publish them
-        // TODO : 3b find in file all hash's wich not in calculated and remove them
-
-        int current = -1;
-
-        if (!isFirstRun()){
+        if(isFirstRun())
+        {
             int i;
-            String ln = getLastHash();
-            for( i = 0;i<items.size();i++) {
+            setFirstRun(false);
+            itemMap.clear();
+            storeHash();
+
+            for (i =(items.size() -1 ); i >= 0 ; i--)
+            {
                 RssItemBean item = items.get(i);
                 String itm = item.getTitle();
                 itm = getHash(itm);
-                if (itm.contains(ln)){
-                    current = i;
-                    break;
-                }
+                itemMap.put(itm,i);
+                printElement(item);
             }
-            if (current < 0)
-                //current = items.size();
-                current = 0; // overrun fix - better to miss some articles than send twice
-        } else {
-        if (current < 0)
-            current = items.size();
+            storeHash();
         }
-
-        LOGGER.info(String.format("%s - %s new of %s items",feedName,current,items.size()));
-
-        if (items.size() > 0)
+        else
         {
             setFirstRun(false);
+            Map<String, Integer> currentItemMap = new HashMap<String, Integer>(200);
+            int i;
+            for (i = (items.size() -1 ); i >=0 ; i--)
+            {
+                RssItemBean item = items.get(i);
+                String itm = item.getTitle();
+                itm = getHash(itm);
+                currentItemMap.put(itm,i);
+            }
 
-            for(int i=(current-1);i>=0;i--){
-                try {
-                    //Element element = (Element)nodes.item(i);
-                    RssItemBean item = items.get(i);
-                    LOGGER.fine(String.format("%s - Post item to %s", feedName, newsHub));
+            LoadHashes();
+            i = 0;
+            Iterator it = currentItemMap.entrySet().iterator();
+            while (it.hasNext()){
+                Map.Entry pairs = (Map.Entry)it.next();
+
+                if(!itemMap.containsKey(pairs.getKey())){
+                    itemMap.put((String)pairs.getKey(),(Integer)pairs.getValue());
+                    RssItemBean item = items.get((Integer)pairs.getValue());
                     printElement(item);
-                }catch (Exception e){
-                    LOGGER.warning(String.format("%s -%s",feedName,e.toString()));
+                    i++;
                 }
             }
-            setLastNode(items.get(0));
+
+            LOGGER.info(String.format("%s - %s new of %s items",feedName, i ,items.size()));
+
+            removeOldHash(currentItemMap);
         }
 
-//        for (int i=0; i<items.size(); i++){
-//            RssItemBean item = items.get(i);
-//            System.out.println("Title: " + item.getTitle());
-//            System.out.println("Link : " + item.getLink());
-//            System.out.println("Desc.: " + item.getDescription());
-//        }
+    }
+
+    private void removeOldHash(Map<String, Integer> currentItemMap) throws IOException {
+        Iterator it;
+        int i;List<String> hashesToDelete = new ArrayList<String>();
+
+        it = itemMap.entrySet().iterator();
+        while (it.hasNext()){
+            Map.Entry pairs = (Map.Entry)it.next();
+
+            if(!currentItemMap.containsKey(pairs.getKey()))
+                hashesToDelete.add((String) pairs.getKey());
+        }
+
+        for(i = 0; i < hashesToDelete.size(); i++)
+        {
+            itemMap.remove(hashesToDelete.get(i));
+        }
+
+        LOGGER.info(String.format("%s - removed %s old items",feedName, hashesToDelete.size()));
+
+        storeHash();
+    }
+
+    private void LoadHashes() throws IOException, ParseException {
+        JSONParser parser = new JSONParser();
+        Object obj = parser.parse(new FileReader(config.getProperty("nodehashfile","hash.json")));
+        JSONObject jItemMap = (JSONObject)obj;
+        itemMap.clear();
+        itemMap.putAll(jItemMap);
+    }
+
+    private void storeHash() throws IOException {
+        JSONObject jMap = new JSONObject(itemMap);
+        FileWriter fileWriter = new FileWriter(config.getProperty("nodehashfile","hash.json"));
+        fileWriter.write(jMap.toJSONString());
+        fileWriter.flush();
+        fileWriter.close();
     }
 
     private List<RssItemBean> loadItems(String url) throws Exception {
