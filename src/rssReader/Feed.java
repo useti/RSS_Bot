@@ -103,23 +103,6 @@ public class Feed implements Runnable{
 
     private boolean isFirstRun;
 
-//    public String getLastHash(){
-//        return config.getProperty("lasttnodehash");
-//    }
-
-//    public void setLastNode(RssItemBean node) throws CloneNotSupportedException {
-//        String nods = node.getTitle();
-//        String ret = getHash(nods);
-//        config.setProperty("lasttnodehash",ret);
-//
-//        try {
-//            config.store(new FileOutputStream(configFileName), null);
-//        } catch (IOException e) {
-//            LOGGER.warning(String.format("%s - %s", feedName, e.toString()));
-//            //e.printStackTrace();
-//        }
-//    }
-
     final protected static char[] hexArray = "0123456789ABCDEF".toCharArray();
     public static String bytesToHex(byte[] bytes) {
         char[] hexChars = new char[bytes.length * 2];
@@ -194,6 +177,10 @@ public class Feed implements Runnable{
         }
     }
 
+
+    private int prevItemSize = 0;
+    private int prevFailCount = 0;
+
     private void processFeed() throws Exception {
 
         String url = link.toString();
@@ -216,53 +203,70 @@ public class Feed implements Runnable{
             prewsize = titm.size();
         }
 
-        if(isFirstRun())
+        if(items.size() > 0) // Костыль первый - если нет записей, то ничего и не делаем
         {
-            int i;
-            setFirstRun(false);
-            itemMap.clear();
-            storeHash();
-
-            for (i =(items.size() -1 ); i >= 0 ; i--)
+            if (items.size() >= prevItemSize) // Костыль второй - число записей не должно убывать
             {
-                RssItemBean item = items.get(i);
-                String itm = item.getTitle();
-                itm = getHash(itm);
-                itemMap.put(itm,i);
-                printElement(item);
-            }
-            storeHash();
-        }
-        else
-        {
-            setFirstRun(false);
-            Map<String, Integer> currentItemMap = new HashMap<String, Integer>(200);
-            int i;
-            for (i = (items.size() -1 ); i >=0 ; i--)
-            {
-                RssItemBean item = items.get(i);
-                String itm = item.getTitle();
-                itm = getHash(itm);
-                currentItemMap.put(itm,i);
-            }
+                if(isFirstRun())
+                {
+                    int i;
+                    setFirstRun(false);
+                    itemMap.clear();
+                    storeHash();
 
-            LoadHashes();
-            i = 0;
-            Iterator it = currentItemMap.entrySet().iterator();
-            while (it.hasNext()){
-                Map.Entry pairs = (Map.Entry)it.next();
-
-                if(!itemMap.containsKey(pairs.getKey())){
-                    itemMap.put((String)pairs.getKey(),(Integer)pairs.getValue());
-                    RssItemBean item = items.get((Integer)pairs.getValue());
-                    printElement(item);
-                    i++;
+                    for (i =(items.size() -1 ); i >= 0 ; i--)
+                    {
+                        RssItemBean item = items.get(i);
+                        String itm = item.getTitle();
+                        itm = getHash(itm);
+                        itemMap.put(itm,i);
+                        printElement(item);
+                    }
+                    storeHash();
                 }
+                else
+                {
+                    setFirstRun(false);
+                    Map<String, Integer> currentItemMap = new HashMap<String, Integer>(200);
+                    int i;
+                    for (i = (items.size() -1 ); i >=0 ; i--)
+                    {
+                        RssItemBean item = items.get(i);
+                        String itm = item.getTitle();
+                        itm = getHash(itm);
+                        currentItemMap.put(itm,i);
+                    }
+
+                    LoadHashes();
+                    i = 0;
+                    Iterator it = currentItemMap.entrySet().iterator();
+                    while (it.hasNext()){
+                        Map.Entry pairs = (Map.Entry)it.next();
+
+                        if(!itemMap.containsKey(pairs.getKey())){
+                            itemMap.put((String)pairs.getKey(),(Integer)pairs.getValue());
+                            RssItemBean item = items.get((Integer)pairs.getValue());
+                            printElement(item);
+                            i++;
+                        }
+                    }
+
+                    LOGGER.info(String.format("%s - %s new of %s items",feedName, i ,items.size()));
+
+                    removeOldHash(currentItemMap);
+                }
+                prevItemSize = items.size();
             }
-
-            LOGGER.info(String.format("%s - %s new of %s items",feedName, i ,items.size()));
-
-            removeOldHash(currentItemMap);
+            else // Но не более числа раз, указанного в конфиге, иначе обнуляем
+            {
+                if(prevFailCount >= Integer.parseInt(config.getProperty("prevfailcount","4")))
+                {
+                    prevFailCount = 0;
+                    prevItemSize = 0;
+                }
+                else
+                    prevFailCount++;
+            }
         }
 
     }
