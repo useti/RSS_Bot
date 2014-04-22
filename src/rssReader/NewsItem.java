@@ -28,7 +28,8 @@ public class NewsItem implements IRss {
         this.item = item;
         this.newsHub = newsHub;
 
-        this.title = getElementValue(this.item, "title");
+        String ttitle = getElementValue(this.item, "title");
+        this.title = ttitle.substring(0,ttitle.indexOf("&nbsp;")) + " " + ttitle.substring(ttitle.indexOf("&nbsp;")+6);
         this.link = new URL(getElementValue(this.item, "link"));
         this.pDate = new Date(Date.parse(getElementValue(this.item,"pubDate")));
         this.author = getElementValue(this.item,"dc:creator");
@@ -49,7 +50,15 @@ public class NewsItem implements IRss {
 //        this.item = item;
         this.newsHub = newsHub;
 
-        this.title = item.getTitle();
+        String ttitle = item.getTitle();
+        if(ttitle.contains("&nbsp;"))
+        {
+            this.title = ttitle.substring(0,ttitle.indexOf("&nbsp;")) + " " + ttitle.substring(ttitle.indexOf("&nbsp;")+6);
+        }
+        else
+        {
+            this.title = ttitle;
+        }
         this.link = new URL(item.getLink());
         this.pDate = item.getPubDate();
         this.author = item.getAuthor() == null ? "" :item.getAuthor();

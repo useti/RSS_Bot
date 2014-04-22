@@ -325,7 +325,7 @@ public class Feed implements Runnable{
         return ret;
     }
 
-    private void printElement(RssItemBean element) throws XMPPException, MalformedURLException {
+    private void printElement(RssItemBean element) throws XMPPException, MalformedURLException, InterruptedException {
 //        ConfigureForm form = new ConfigureForm(FormType.submit);
 //        form.setPersistentItems(false);
 //        form.setDeliverPayloads(true);
@@ -339,10 +339,7 @@ public class Feed implements Runnable{
         PayloadItem p = ni.genPayload();
 
         try {
-            myNode = jabber.pmanager.getNode(newsHub);
-
-            LOGGER.finest(String.format("%s - Post",feedName));
-            myNode.send(p);
+            SendPayload(p);
             Thread.sleep(100);
         } catch (Exception e){
             LOGGER.warning(String.format("%s - %s", feedName, e.toString()));
@@ -360,9 +357,25 @@ public class Feed implements Runnable{
 
                 LOGGER.finest(String.format("%s - Post",feedName));
                 leaf.send(p);
+            }   else if(e.toString().contains("Not connected to server"))
+            {
+                jabber.disconnect();
+                Thread.sleep(3000);
+                jabber.connect();
+                Thread.sleep(3000);
+                SendPayload(p);
+                Thread.sleep(100);
             }
 
         }
+    }
+
+    private void SendPayload(PayloadItem p) throws XMPPException {
+        LeafNode myNode;
+        myNode = jabber.pmanager.getNode(newsHub);
+
+        LOGGER.finest(String.format("%s - Post",feedName));
+        myNode.send(p);
     }
 
 //    private void printElement(Element element) throws XMPPException, MalformedURLException {
