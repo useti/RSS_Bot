@@ -251,7 +251,11 @@ public class Feed implements Runnable{
                         }
                     }
 
-                    LOGGER.info(String.format("%s - %s new of %s items",feedName, i ,items.size()));
+                    if (i > 0){
+                        LOGGER.info(String.format("%s - %s new of %s items",feedName, i ,items.size()));
+                    }else{
+                        LOGGER.fine(String.format("%s - %s new of %s items",feedName, i ,items.size()));
+                    }
 
                     removeOldHash(currentItemMap);
                 }
@@ -288,7 +292,13 @@ public class Feed implements Runnable{
             itemMap.remove(hashesToDelete.get(i));
         }
 
-        LOGGER.info(String.format("%s - removed %s old items",feedName, hashesToDelete.size()));
+        if(hashesToDelete.size()>0){
+            LOGGER.info(String.format("%s - removed %s old items",feedName, hashesToDelete.size()));
+        }else{
+            LOGGER.fine(String.format("%s - removed %s old items", feedName, hashesToDelete.size()));
+        }
+         
+
 
         storeHash();
     }
