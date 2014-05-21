@@ -142,24 +142,62 @@ public class Feed implements Runnable{
                 LOGGER.warning(String.format("%s - %s",feedName,e.toString()));
             } catch (ParserConfigurationException e) {
                 LOGGER.warning(String.format("%s - %s", feedName, e.toString()));
+                try {
+                    Thread.sleep(checkInterval * 3 * 1000);
+                    LOGGER.warning(String.format("%s - Slowdown for %s seconds", feedName, checkInterval * 3));
+                } catch (InterruptedException e1) {
+                }
             } catch (IOException e) {
                 LOGGER.warning(String.format("%s - %s", feedName, e.toString()));
+                try {
+                    Thread.sleep(checkInterval * 3 * 1000);
+                    LOGGER.warning(String.format("%s - Slowdown for %s seconds", feedName, checkInterval * 3));
+                } catch (InterruptedException e1) {
+                }
             } catch (SAXException e) {
                 LOGGER.warning(e.toString());
+                try {
+                    Thread.sleep(checkInterval * 3 * 1000);
+                    LOGGER.warning(String.format("%s - Slowdown for %s seconds", feedName, checkInterval * 3));
+                } catch (InterruptedException e1) {
+                }
             } catch (XMPPException e) {
                 LOGGER.warning(String.format("%s - XMPP error %s",feedName,e));
-                //e.printStackTrace();
                 reconnect();
+                try {
+                    Thread.sleep(checkInterval * 3 * 1000);
+                    LOGGER.warning(String.format("%s - Slowdown for %s seconds", feedName, checkInterval * 3));
+                } catch (InterruptedException e1) {
+                }
             } catch (ClassNotFoundException e) {
                 LOGGER.warning(String.format("%s - %s", feedName, e.toString()));
+                try {
+                    Thread.sleep(checkInterval * 3 * 1000);
+                    LOGGER.warning(String.format("%s - Slowdown for %s seconds", feedName, checkInterval * 3));
+                } catch (InterruptedException e1) {
+                }
             } catch (InstantiationException e) {
                 LOGGER.warning(String.format("%s - %s", feedName, e.toString()));
+                try {
+                    Thread.sleep(checkInterval * 3 * 1000);
+                    LOGGER.warning(String.format("%s - Slowdown for %s seconds", feedName, checkInterval * 3));
+                } catch (InterruptedException e1) {
+                }
             } catch (IllegalAccessException e) {
                 LOGGER.warning(String.format("%s - %s", feedName, e.toString()));
                 reconnect();
+                try {
+                    Thread.sleep(checkInterval * 3 * 1000);
+                    LOGGER.warning(String.format("%s - Slowdown for %s seconds", feedName, checkInterval * 3));
+                } catch (InterruptedException e1) {
+                }
             } catch (Exception e) {
                 LOGGER.warning(String.format("%s - %s", feedName, e.toString()));
-//                e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+                try {
+                    Thread.sleep(checkInterval * 3 * 1000);
+                    LOGGER.warning(String.format("%s - Slowdown for %s seconds", feedName, checkInterval * 3));
+                } catch (InterruptedException e1) {
+                }
             }
         }
     }
